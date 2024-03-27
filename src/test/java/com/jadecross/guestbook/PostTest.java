@@ -7,6 +7,7 @@ class PostTest {
     @Test
     void testSetName() {
         Post post = new Post("TESTER", "2024-04-12 01:01:48", "Happy Wedding");
+        post = null;
         post.setName("DEVOPS");
         assertEquals("DEVOPS", post.getName());
     }
