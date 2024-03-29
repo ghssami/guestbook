@@ -116,7 +116,8 @@
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename"></stringProp>
+          <stringProp name="filename">/home/vagrant/lab/sw/guestbook_loadtest.jmx</stringProp>
+          <boolProp name="useGroupName">true</boolProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="Graph Results" enabled="true">
