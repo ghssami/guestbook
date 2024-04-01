@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 
-def TODAY = (new SimpleDateFormat("yyyyMMddHHmmss")).format(new Date())
+def TODAY = (new SimpleDateFormat("yyyyMMdd")).format(new Date())
 
 pipeline {
     agent any
@@ -40,7 +40,7 @@ pipeline {
                     sh '''
                         ./mvnw sonar:sonar \
                         -Dsonar.projectKey=guestbook \
-                        -Dsonar.host.url=http://172.31.0.120:9000 \
+                        -Dsonar.host.url=http://192.168.56.143:9000 \
                         -Dsonar.login=21193ff67973f0efc068ac33ce547e3da8c671b7
                     '''
                 }
@@ -84,13 +84,13 @@ pipeline {
         }
         stage('Staging Deploy') {
             steps {
-                sshagent(credentials: ['Staing-PrivateKey']) {
-                    sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.0.110 docker container rm -f guestbookapp"
-                    sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.0.110 docker container run \
+                sshagent(credentials: ['Staging-PrivateKey']) {
+                    sh "ssh -o StrictHostKeyChecking=no root@10.10.10.11 docker container rm -f guestbookapp"
+                    sh "ssh -o StrictHostKeyChecking=no root@10.10.10.11 docker container run \
                                         -d \
                                         -p 38080:80 \
                                         --name=guestbookapp \
-                                        -e MYSQL_IP=172.31.0.100 \
+                                        -e MYSQL_IP=10.10.10.100 \
                                         -e MYSQL_PORT=3306 \
                                         -e MYSQL_DATABASE=guestbook \
                                         -e MYSQL_USER=root \
@@ -99,22 +99,27 @@ pipeline {
                 }
             }
         }
-
+        stage ('JMeter LoadTest') {
+            steps { 
+                sh '~/lab/sw/jmeter/bin/jmeter.sh -j jmeter.save.saveservice.output_format=xml -n -t src/main/jmx/guestbook_loadtest.jmx -l loadtest_result.jtl' 
+                perfReport filterRegex: '', showTrendGraphs: true, sourceDataFiles: 'loadtest_result.jtl' 
+            } 
+        }
     }
     post { 
         always { 
             emailext (attachLog: true, body: '본문', compressLog: true
-                    , recipientProviders: [buildUser()], subject: '제목', to: 'ggwuridl@gmail.com')
+                    , recipientProviders: [buildUser()], subject: '제목', to: 'ghssami.j@gmail.com')
 
         }
         success { 
-            slackSend(tokenCredentialId: 'Slack-token'
+            slackSend(tokenCredentialId: 'slack-token'
                 , channel: '#교육'
                 , color: 'good'
                 , message: "${JOB_NAME} (${BUILD_NUMBER}) 빌드가 성공적으로 끝났습니다. Details: (<${BUILD_URL} | here >)")
         }
         failure { 
-            slackSend(tokenCredentialId: 'Slack-token'
+            slackSend(tokenCredentialId: 'slack-token'
                 , channel: '#교육'
                 , color: 'danger'
                 , message: "${JOB_NAME} (${BUILD_NUMBER}) 빌드가 실패하였습니다. Details: (<${BUILD_URL} | here >)")
