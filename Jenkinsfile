@@ -85,8 +85,8 @@ pipeline {
         stage('Staging Deploy') {
             steps {
                 sshagent(credentials: ['Staging-PrivateKey']) {
-                    sh "ssh -o StrictHostKeyChecking=no root@10.10.10.11 docker container rm -f guestbookapp"
-                    sh "ssh -o StrictHostKeyChecking=no root@10.10.10.11 docker container run \
+                    sh "ssh -o StrictHostKeyChecking=no vagrant@10.10.10.11 docker container rm -f guestbookapp"
+                    sh "ssh -o StrictHostKeyChecking=no vagrant@10.10.10.11 docker container run \
                                         -d \
                                         -p 38080:80 \
                                         --name=guestbookapp \
