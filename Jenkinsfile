@@ -3,7 +3,7 @@ import java.text.SimpleDateFormat
 def TODAY = (new SimpleDateFormat("yyyyMMdd")).format(new Date())
 
 pipeline {
-    agent any
+    agent { label 'agent2' }
     environment {
         strDockerTag = "${TODAY}_${BUILD_ID}"
         strDockerImage ="dkssami/cicd_guestbook:${strDockerTag}"
